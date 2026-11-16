@@ -1,0 +1,24 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install libraries
+        run: pip install -r requirements.txt
+
+      # pytest exits with code 5 when it finds no tests. That is expected until
+      # step 3 adds the first one; remove this exception then.
+      - name: Run tests
+        run: pytest || [ $? -eq 5 ]

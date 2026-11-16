@@ -1,0 +1,14 @@
+# Virtual environment: rebuilt from requirements.txt, never committed
+.venv/
+
+# Data: downloaded from Kaggle, too big for Git and not ours to redistribute
+data/
+
+# Secrets such as the Neon DATABASE_URL
+.env
+
+# Python and tool caches
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
