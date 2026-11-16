@@ -18,7 +18,5 @@ jobs:
       - name: Install libraries
         run: pip install -r requirements.txt
 
-      # pytest exits with code 5 when it finds no tests. That is expected until
-      # step 3 adds the first one; remove this exception then.
       - name: Run tests
-        run: pytest || [ $? -eq 5 ]
+        run: pytest
