@@ -49,9 +49,17 @@ def split_tracks(df, seed=42, val_share=0.15, test_share=0.15):
     return train, val, test
 
 
-def get_xy(df):
-    """Split a table into model inputs X and the answer y."""
+def get_x(df, genres=None):
+    """The model's inputs. Pass `genres` (the list the model learned) so every
+    table numbers the genres the same way, even a table with one song."""
     X = df[FEATURES].copy()
-    X["track_genre"] = X["track_genre"].astype("category")
-    y = df[TARGET]
-    return X, y
+    if genres is None:
+        X["track_genre"] = X["track_genre"].astype("category")
+    else:
+        X["track_genre"] = pd.Categorical(X["track_genre"], categories=genres)
+    return X
+
+
+def get_xy(df, genres=None):
+    """Split a table into model inputs X and the answer y."""
+    return get_x(df, genres), df[TARGET]
