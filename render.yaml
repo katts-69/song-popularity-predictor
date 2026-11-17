@@ -1,0 +1,20 @@
+# Render "Blueprint": tells Render how to build and run the API.
+# Render reads this when you create a Blueprint from the GitHub repo.
+services:
+  - type: web
+    name: song-popularity-api
+    runtime: python
+    plan: free
+    region: singapore              # same region as the Neon database (ap-southeast-1)
+    buildCommand: pip install -r requirements-api.txt
+    # gunicorn is a production web server; one worker keeps memory inside the free 512 MB.
+    startCommand: gunicorn api.wsgi:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    healthCheckPath: /health
+    autoDeploy: true               # redeploy on every push to main
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ALLOWED_ORIGINS        # the only website allowed to call the API
+        value: https://katts-69.github.io
+      - key: DATABASE_URL           # secret: you paste it into Render, it's never in the repo
+        sync: false
