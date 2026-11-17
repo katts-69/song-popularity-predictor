@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Song Popularity Predictor</title>
+  <meta name="description" content="Predict a song's Spotify popularity from its genre and sound, with the reasons behind each prediction.">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <h1 class="wordmark">Song Popularity Predictor</h1>
+    <p class="tagline">Guess a song's Spotify popularity, from 0 to 100, from its genre and how it sounds.</p>
+  </header>
+
+  <main>
+    <section class="window" aria-labelledby="tool-title">
+      <div class="titlebar">
+        <h2 id="tool-title" class="stamp">LightGBM model · trained on 53,599 songs</h2>
+        <p class="stamp">Off by 8.5 points on average for songs it never saw</p>
+      </div>
+
+      <div class="window-body">
+        <form id="song-form" class="controls" novalidate>
+          <div class="field">
+            <label for="track_genre">Genre</label>
+            <select id="track_genre" name="track_genre" disabled>
+              <option>Loading genres…</option>
+            </select>
+          </div>
+
+          <fieldset class="group">
+            <legend>How it sounds</legend>
+            <p class="hint">Example values for a mid-tempo pop song are filled in. Move any slider to try your own.</p>
+            <div id="sliders" class="sliders"></div>
+          </fieldset>
+
+          <fieldset class="group">
+            <legend>Details</legend>
+            <div class="details">
+              <div class="field">
+                <label for="key">Key</label>
+                <select id="key" name="key"></select>
+              </div>
+              <div class="field">
+                <label for="mode">Mode</label>
+                <select id="mode" name="mode">
+                  <option value="1" selected>Major</option>
+                  <option value="0">Minor</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="time_signature">Beats per bar</label>
+                <select id="time_signature" name="time_signature">
+                  <option value="3">3/4</option>
+                  <option value="4" selected>4/4</option>
+                  <option value="5">5/4</option>
+                  <option value="6">6/4</option>
+                  <option value="7">7/4</option>
+                </select>
+              </div>
+              <label class="check" for="explicit">
+                <input type="checkbox" id="explicit" name="explicit">
+                <span>Explicit lyrics</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="actions">
+            <button type="submit" id="predict" class="btn-primary" disabled>
+              Predict popularity <span aria-hidden="true">›</span>
+            </button>
+            <p id="server-status" class="status" role="status">Connecting to the prediction server…</p>
+          </div>
+          <p id="form-error" class="form-error" role="alert" hidden></p>
+        </form>
+
+        <section id="result" class="result" data-state="empty" aria-labelledby="result-title">
+          <h2 id="result-title" class="label">Prediction</h2>
+
+          <svg id="disc" class="disc" viewBox="0 0 240 240" width="240" height="240" role="img" aria-labelledby="disc-text">
+            <title id="disc-text">No prediction yet</title>
+            <circle class="disc-body" cx="120" cy="120" r="116"/>
+            <g class="grooves" aria-hidden="true">
+              <circle cx="120" cy="120" r="96"/>
+              <circle cx="120" cy="120" r="88"/>
+              <circle cx="120" cy="120" r="80"/>
+              <circle cx="120" cy="120" r="72"/>
+              <circle cx="120" cy="120" r="64"/>
+            </g>
+            <circle class="ring-track" cx="120" cy="120" r="106"/>
+            <circle id="ring" class="ring" cx="120" cy="120" r="106" transform="rotate(-90 120 120)"/>
+            <circle class="hub" cx="120" cy="120" r="50"/>
+            <text id="score" class="score" x="120" y="128" text-anchor="middle">–</text>
+            <text class="out-of" x="120" y="150" text-anchor="middle">of 100</text>
+          </svg>
+
+          <div id="result-text" class="result-text" aria-live="polite">
+            <p>Set the genre and sliders, then press <strong>Predict popularity</strong>. You'll see the score and the five biggest reasons behind it.</p>
+          </div>
+          <ol id="reasons" class="reasons" hidden></ol>
+        </section>
+      </div>
+    </section>
+
+    <section class="recent" aria-labelledby="recent-title">
+      <h2 id="recent-title">Recent predictions</h2>
+      <p class="hint">Every prediction made on this page is saved to a PostgreSQL database. These are the latest.</p>
+      <p id="recent-status" class="status" role="status">Loading recent predictions…</p>
+      <ol id="recent-list" class="recent-list" hidden></ol>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Trained on the Spotify Tracks Dataset from Kaggle. Spotify scores each release separately and the data has no artist fame or marketing, so treat a prediction as "typical for songs like this", not a hit forecast.</p>
+    <p><a href="https://github.com/katts-69/song-popularity-predictor">Code, notebooks and tests on GitHub</a></p>
+  </footer>
+</body>
+</html>
