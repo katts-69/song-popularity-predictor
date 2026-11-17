@@ -12,3 +12,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .ipynb_checkpoints/
+
+# Coverage tool output
+.coverage
+htmlcov/
