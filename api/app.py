@@ -9,12 +9,17 @@ from pathlib import Path
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from src.predict import explain_one
 from src.train import load_model
 
 MODEL_PATH = Path("models/model.joblib")
 MAX_RECENT = 50
+PREDICT_LIMIT = "10 per minute"  # per visitor; CORS can't stop scripts, this can
+MAX_BODY_BYTES = 16 * 1024       # a song is under 1 KB
 
 # What each feature is allowed to be: (lowest, highest, must be a whole number).
 RANGES = {
@@ -77,8 +82,13 @@ def default_store():
     return PostgresStore(url)
 
 
-def create_app(bundle=None, store="default", allowed_origins=None):
+def create_app(bundle=None, store="default", allowed_origins=None, predict_limit=PREDICT_LIMIT):
     app = Flask(__name__)
+    app.config["MAX_CONTENT_LENGTH"] = MAX_BODY_BYTES  # bigger bodies get a 413, unread
+    # On Render every request arrives through one proxy, which puts the visitor's
+    # real address in X-Forwarded-For. Trust exactly that one hop.
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
+    limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
     bundle = bundle or load_model(MODEL_PATH)
     store = default_store() if store == "default" else store
     if allowed_origins is None:
@@ -89,6 +99,14 @@ def create_app(bundle=None, store="default", allowed_origins=None):
     def bad_input(error):
         return jsonify({"error": str(error)}), 400
 
+    @app.errorhandler(429)
+    def too_many(error):
+        return jsonify({"error": "Too many predictions from your connection. Please wait a minute and try again."}), 429
+
+    @app.errorhandler(413)
+    def too_large(error):
+        return jsonify({"error": "That request is too large. Send only the song's features."}), 413
+
     @app.get("/health")
     def health():
         return jsonify({"status": "ok"})
@@ -98,6 +116,7 @@ def create_app(bundle=None, store="default", allowed_origins=None):
         return jsonify({"genres": bundle["genres"]})
 
     @app.post("/predict")
+    @limiter.limit(predict_limit)
     def predict():
         body = request.get_json(silent=True)
         if body is None:

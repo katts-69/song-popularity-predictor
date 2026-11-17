@@ -231,6 +231,8 @@ form.addEventListener("submit", async (event) => {
       formError.textContent = body.error || "Something in the form isn't valid.";
       formError.hidden = false;
       showResultError("Fix the problem above, then press Predict popularity again.");
+    } else if (status === 429 || status === 413) {
+      showResultError(body.error || "The server refused this request. Wait a minute and try again.");
     } else {
       showResultError(`The server answered with an error (${status}). Try again in a moment.`);
     }

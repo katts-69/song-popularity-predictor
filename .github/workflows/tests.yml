@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+# The tests only need to read the code, so the job's GitHub token can't push or change anything.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
